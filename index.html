@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ส่งยอดรายวัน - TaxiEV</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #FAFCFB;
+            --bg-alt: #EFF5F3;
+            --ink: #102520;
+            --ink-soft: #4E6B67;
+            --ink-faint: #8AA39F;
+            --accent: #1CA37D;
+            --accent-soft: rgba(28,163,125,0.10);
+            --blue: #3E6FE0;
+            --orange: #E07A1F;
+            --purple: #8862E0;
+            --rule: rgba(16,37,32,0.14);
+            --danger: #D9433B;
+            --danger-bg: #FBEAE8;
+            --warning: #C2790E;
+            --warning-bg: #FDF0DA;
+            --font: 'Prompt', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: var(--font);
+            font-weight: 300;
+            padding-bottom: 0;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ─── Header ─── */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 24px 0;
+        }
+        .app-logo {
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+        }
+        .app-logo .hi {
+            background: linear-gradient(100deg, var(--accent), var(--blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .app-header-dot {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.68rem;
+            color: var(--ink-faint);
+            letter-spacing: 1px;
+        }
+        .app-header-dot::before {
+            content: '';
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 6px var(--accent);
+        }
+
+        /* ─── Hero ─── */
+        .hero {
+            position: relative;
+            margin: 0 -24px;
+            padding: 22px 24px 8px;
+            overflow: hidden;
+        }
+        .confetti { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+        .confetti span {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.85;
+        }
+        .hero-content { position: relative; z-index: 1; }
+        .hero-title {
+            font-size: 1.7rem;
+            font-weight: 600;
+            line-height: 1.32;
+        }
+        .hero-title .accent-name { color: var(--accent); font-weight: 700; }
+        .hero-caption {
+            margin-top: 14px;
+            font-size: 0.82rem;
+            color: var(--ink-soft);
+            font-weight: 300;
+            line-height: 1.6;
+        }
+        .hero-caption .k { color: var(--accent); font-weight: 500; }
+
+        /* ─── Container ─── */
+        .container { padding: 0 24px; }
+
+        /* ─── Form sections ─── */
+        form { display: block; margin-top: 12px; }
+        .section {
+            padding: 26px 0;
+            border-top: 1px solid var(--rule);
+            animation: fadeUp 0.4s ease both;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .section-eyebrow {
+            font-size: 0.68rem;
+            letter-spacing: 2px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .section.c-teal   .section-eyebrow { color: var(--accent); }
+        .section.c-blue   .section-eyebrow { color: var(--blue); }
+        .section.c-orange .section-eyebrow { color: var(--orange); }
+        .section.c-purple .section-eyebrow { color: var(--purple); }
+        .section.c-teal   .input-field:focus { border-bottom-color: var(--accent); box-shadow: 0 6px 10px -8px var(--accent); }
+        .section.c-blue   .input-field:focus { border-bottom-color: var(--blue); box-shadow: 0 6px 10px -8px var(--blue); }
+        .section.c-orange .input-field:focus { border-bottom-color: var(--orange); box-shadow: 0 6px 10px -8px var(--orange); }
+        .section.c-purple .input-field:focus { border-bottom-color: var(--purple); box-shadow: 0 6px 10px -8px var(--purple); }
+        .section-title {
+            font-size: 1.02rem;
+            font-weight: 600;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 16px;
+            margin-top: 20px;
+        }
+        .input-grid .full-width { grid-column: 1 / -1; }
+        .input-group { position: relative; }
+        .input-label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 400;
+            color: var(--ink-faint);
+            margin-bottom: 6px;
+        }
+        .input-field {
+            width: 100%;
+            padding: 6px 2px 9px;
+            border: none;
+            border-bottom: 1px solid var(--rule);
+            border-radius: 0;
+            background: transparent;
+            font-family: var(--font);
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--ink);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .input-field::placeholder { color: var(--ink-faint); font-weight: 300; }
+        .input-field:focus {
+            border-bottom: 1.5px solid var(--accent);
+            box-shadow: 0 6px 10px -8px var(--accent);
+        }
+        input[type="date"].input-field { color: var(--ink); font-weight: 500; }
+
+        /* ─── Submit ─── */
+        .submit-wrap { padding: 30px 0 40px; }
+        .btn-submit {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            border: 1.5px solid var(--accent);
+            border-radius: 999px;
+            background: transparent;
+            color: var(--accent);
+            font-family: var(--font);
+            font-size: 0.98rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+        }
+        .btn-submit:active {
+            background: var(--accent);
+            color: #06201A;
+            transform: scale(0.98);
+            box-shadow: 0 0 20px -2px var(--accent), 0 0 34px -6px var(--blue);
+        }
+        .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ─── Loader ─── */
+        .loader-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 90px 24px;
+        }
+        .spinner {
+            width: 30px; height: 30px;
+            border: 2.5px solid var(--rule);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-text {
+            margin-top: 14px;
+            font-size: 0.8rem;
+            color: var(--ink-faint);
+            font-weight: 300;
+        }
+
+        /* ─── Status Cards ─── */
+        .status-card {
+            margin: 30px 24px 0;
+            padding: 30px 20px;
+            text-align: center;
+            border: 1px solid var(--rule);
+            border-radius: 20px;
+            animation: fadeUp 0.4s ease both;
+        }
+        .status-card.danger  { border-color: rgba(255,107,107,0.4); }
+        .status-card.warning { border-color: rgba(242,184,75,0.4); }
+        .status-icon { font-size: 1.8rem; margin-bottom: 12px; }
+        .status-title { font-size: 1.02rem; font-weight: 600; margin-bottom: 8px; }
+        .status-title.danger  { color: var(--danger); }
+        .status-title.warning { color: var(--warning); }
+        .status-desc { font-size: 0.85rem; color: var(--ink-soft); font-weight: 300; line-height: 1.65; }
+
+        .uid-box {
+            background: rgba(16,37,32,0.045);
+            border: 1px dashed var(--rule);
+            border-radius: 10px;
+            padding: 14px;
+            margin: 18px 0;
+            word-break: break-all;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: var(--accent);
+        }
+        .btn-copy {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            border: 1.5px solid var(--warning);
+            border-radius: 999px;
+            background: transparent;
+            color: var(--warning);
+            font-family: var(--font);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s, opacity 0.2s;
+        }
+        .btn-copy:active { transform: scale(0.98); }
+
+        .error-text {
+            text-align: center;
+            color: var(--danger);
+            font-weight: 500;
+            padding: 40px 20px;
+            font-size: 0.9rem;
+        }
+
+        /* ─── Footer band ─── */
+        .footer-band {
+            background: var(--bg-alt);
+            margin-top: auto;
+            padding: 32px 24px 36px;
+            text-align: center;
+        }
+        .footer-band-text {
+            font-size: 0.78rem;
+            color: var(--ink-faint);
+            font-weight: 300;
+        }
+        .footer-band-brand {
+            font-size: 0.78rem;
+            color: var(--accent);
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .hidden { display: none !important; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .section, .status-card { animation: none; }
+            .btn-submit { transition: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-header">
+        <div class="app-logo">TAXI<span class="hi">EV</span></div>
+        <div class="app-header-dot">CHIANG MAI</div>
+    </div>
+
+    <div class="container">
+
+        <!-- Loader -->
+        <div id="loader" class="loader-wrap">
+            <div class="spinner"></div>
+            <div class="loader-text">กำลังตรวจสอบข้อมูล...</div>
+        </div>
+
+        <!-- Main Form -->
+        <form id="reportForm" class="hidden">
+
+            <input type="hidden" id="uid">
+            <input type="hidden" id="name">
+            <input type="hidden" id="plate">
+            <input type="hidden" id="type">
+
+            <!-- Hero: personalized greeting (only rendered once data is loaded, same as rest of form) -->
+            <div class="hero">
+                <div class="confetti" aria-hidden="true">
+                    <span style="width:7px;height:7px;top:6px;left:18px;background:var(--accent);"></span>
+                    <span style="width:4px;height:4px;top:34px;left:52px;background:var(--orange);"></span>
+                    <span style="width:5px;height:5px;top:2px;left:88px;background:var(--blue);"></span>
+                    <span style="width:9px;height:9px;top:46px;right:14px;background:var(--accent);opacity:0.6;"></span>
+                    <span style="width:4px;height:4px;top:8px;right:46px;background:var(--orange);"></span>
+                    <span style="width:6px;height:6px;top:60px;right:70px;background:var(--blue);"></span>
+                    <span style="width:3px;height:3px;top:78px;left:30px;background:var(--purple);"></span>
+                    <span style="width:5px;height:5px;top:90px;right:20px;background:var(--accent);"></span>
+                    <span style="width:5px;height:5px;top:20px;left:130px;background:var(--purple);"></span>
+                    <span style="width:4px;height:4px;top:70px;left:6px;background:var(--blue);"></span>
+                </div>
+                <div class="hero-content">
+                    <div class="hero-title">
+                        สวัสดีครับ<br>
+                        คุณ<span class="accent-name" id="driverName">...</span><br>
+                        ส่งยอดรายวันได้เลย
+                    </div>
+                    <div class="hero-caption">
+                        ทะเบียน <span class="k" style="color:var(--blue);" id="driverPlate">...</span><br>
+                        ประเภทงาน <span class="k" style="color:var(--orange);" id="driverType">...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Date -->
+            <div class="section c-purple" style="border-top:none; padding-top:30px;">
+                <div class="input-group">
+                    <label class="input-label" for="report_date">วันที่ส่งยอด</label>
+                    <input type="date" id="report_date" class="input-field" required>
+                </div>
+            </div>
+
+            <!-- App Income -->
+            <div class="section c-teal">
+                <div class="section-eyebrow">01 — APPLICATION</div>
+                <div class="section-title">รายได้จากแอปพลิเคชัน</div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label class="input-label" for="grab">Grab</label>
+                        <input type="number" id="grab" class="input-field" placeholder="0" step="any">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label" for="bolt">Bolt</label>
+                        <input type="number" id="bolt" class="input-field" placeholder="0" step="any">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label" for="maxim">Maxim</label>
+                        <input type="number" id="maxim" class="input-field" placeholder="0" step="any">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label" for="indriver">InDriver</label>
+                        <input type="number" id="indriver" class="input-field" placeholder="0" step="any">
+                    </div>
+                    <div class="input-group full-width">
+                        <label class="input-label" for="lineman">LINE MAN</label>
+                        <input type="number" id="lineman" class="input-field" placeholder="0" step="any">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Outside / Charter -->
+            <div class="section c-blue">
+                <div class="section-eyebrow">02 — CHARTER</div>
+                <div class="section-title">งานนอกระบบ / เหมา</div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label class="input-label" for="outside">งานนอก</label>
+                        <input type="number" id="outside" class="input-field" placeholder="0" step="any">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label" for="mao">งานเหมา</label>
+                        <input type="number" id="mao" class="input-field" placeholder="0" step="any">
+                    </div>
+                    <div class="input-group full-width">
+                        <label class="input-label" for="mao_location">สถานที่เหมา</label>
+                        <input type="text" id="mao_location" class="input-field" placeholder="เช่น เชียงใหม่-ปาย">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Airport (conditional) -->
+            <div class="section c-orange hidden" id="airportSection">
+                <div class="section-eyebrow">03 — AIRPORT</div>
+                <div class="section-title">งานสนามบิน</div>
+                <div class="input-grid">
+                    <div class="input-group full-width">
+                        <label class="input-label" for="airport_calc">ยอดสนามบิน (ใส่สูตรได้)</label>
+                        <input type="text" id="airport_calc" class="input-field" placeholder="เช่น 150*6+200*3+350">
+                    </div>
+                </div>
+            </div>
+
+            <div class="submit-wrap">
+                <button type="submit" id="btnSubmit" class="btn-submit">ส่งยอดรายวัน</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="footer-band">
+        <div class="footer-band-text">ขอบคุณที่ขับกับเรา</div>
+        <div class="footer-band-brand">TAXI EV · CHIANG MAI</div>
+    </div>
+
+    <script>
+        const LIFF_ID = "2009451309-J0G2WohH";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzuh0khDmnAU624NO5a6LSLFDhp0-k-9VROw-ETyqE2wcn9c3f2tv0lLDA7ONfu17SI/exec";
+
+        async function main() {
+            await liff.init({ liffId: LIFF_ID });
+            if (!liff.isLoggedIn()) { liff.login(); return; }
+            const profile = await liff.getProfile();
+            document.getElementById('uid').value = profile.userId;
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            document.getElementById('report_date').value = `${yyyy}-${mm}-${dd}`;
+            checkUser(profile.userId);
+        }
+
+        async function checkUser(uid) {
+            try {
+                const res = await fetch(`${GAS_URL}?uid=${uid}`);
+                const data = await res.json();
+
+                if (data.status === "success") {
+                    document.getElementById('driverName').innerText = data.name;
+                    document.getElementById('driverPlate').innerText = data.plate;
+                    document.getElementById('driverType').innerText = data.type;
+                    document.getElementById('name').value = data.name;
+                    document.getElementById('plate').value = data.plate;
+                    document.getElementById('type').value = data.type;
+
+                    if (data.type === "สนามบิน") {
+                        document.getElementById('airportSection').classList.remove('hidden');
+                    }
+
+                    document.getElementById('loader').classList.add('hidden');
+                    document.getElementById('reportForm').classList.remove('hidden');
+
+                } else if (data.status === "suspended") {
+                    document.getElementById('reportForm').classList.add('hidden');
+                    document.getElementById('loader').innerHTML = `
+                        <div class="status-card danger">
+                            <div class="status-icon">🚫</div>
+                            <div class="status-title danger">บัญชีถูกระงับ</div>
+                            <p class="status-desc">ผู้ใช้ถูกระงับการใช้งาน<br>กรุณาติดต่อแอดมินหรือผู้ดูแลระบบครับ</p>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('reportForm').classList.add('hidden');
+                    document.getElementById('loader').innerHTML = `
+                        <div class="status-card warning">
+                            <div class="status-icon">⚠️</div>
+                            <div class="status-title warning">ไม่มีสิทธิ์เข้าใช้งาน</div>
+                            <p class="status-desc">บัญชีของคุณยังไม่ได้รับการอนุมัติ<br>กรุณาคัดลอก UID ด้านล่างส่งให้แอดมินครับ</p>
+                            <div class="uid-box">${uid}</div>
+                            <button class="btn-copy" onclick="copyMyUID('${uid}')">📋 คัดลอก UID ส่งให้แอดมิน</button>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                document.getElementById('loader').innerHTML = `<p class="error-text">เชื่อมต่อเซิร์ฟเวอร์ผิดพลาด</p>`;
+            }
+        }
+
+        function copyMyUID(uidText) {
+            var tempInput = document.createElement("textarea");
+            tempInput.value = uidText;
+            tempInput.setAttribute("readonly", "");
+            tempInput.style.position = "absolute";
+            tempInput.style.left = "-9999px";
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            tempInput.setSelectionRange(0, 99999);
+            try {
+                document.execCommand("copy");
+                alert("📋 คัดลอก UID สำเร็จ!\nนำไปกดยืนยันส่งในแชทให้แอดมินได้เลยครับ");
+            } catch (err) {
+                alert("ไม่สามารถคัดลอกอัตโนมัติได้ กรุณาคลุมดำที่ตัวอักษรแล้วกดคัดลอกเองนะครับ");
+            }
+            document.body.removeChild(tempInput);
+        }
+
+        document.getElementById('reportForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmit');
+
+            const maoValue = Number(document.getElementById('mao').value) || 0;
+            const maoLoc = document.getElementById('mao_location').value.trim();
+            if (maoValue > 0 && maoLoc === "") {
+                alert("⚠️ กรุณาระบุ 'สถานที่เหมา' ด้วยครับ (เนื่องจากมีการกรอกยอดงานเหมา)");
+                document.getElementById('mao_location').focus();
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "กำลังบันทึก...";
+
+            const payload = {
+                uid: document.getElementById('uid').value,
+                name: document.getElementById('name').value,
+                plate: document.getElementById('plate').value,
+                type: document.getElementById('type').value,
+                report_date: document.getElementById('report_date').value,
+                grab: document.getElementById('grab').value,
+                bolt: document.getElementById('bolt').value,
+                maxim: document.getElementById('maxim').value,
+                indriver: document.getElementById('indriver').value,
+                lineman: document.getElementById('lineman').value,
+                outside: document.getElementById('outside').value,
+                mao: document.getElementById('mao').value,
+                mao_location: document.getElementById('mao_location').value,
+                airport_calc: document.getElementById('airport_calc').value
+            };
+
+            try {
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await res.json();
+                if (result.status === "success") {
+                    alert("บันทึกยอดสำเร็จ กรุณาแนบสลิปในแชทครับ");
+                    liff.closeWindow();
+                } else {
+                    alert("เกิดข้อผิดพลาด: " + result.message);
+                    btn.disabled = false;
+                    btn.innerText = "ส่งยอดรายวัน";
+                }
+            } catch (err) {
+                alert("ส่งข้อมูลไม่สำเร็จ");
+                btn.disabled = false;
+                btn.innerText = "ส่งยอดรายวัน";
+            }
+        };
+
+        main();
+    </script>
+</body>
+</html>
