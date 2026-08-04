@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ตารางวันหยุด - TaxiEV</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #FAFCFB;
+            --ink: #102520;
+            --ink-soft: #4E6B67;
+            --ink-faint: #8AA39F;
+            --accent: #1CA37D;
+            --blue: #3E6FE0;
+            --orange: #E07A1F;
+            --purple: #8862E0;
+            --rule: rgba(16,37,32,0.14);
+            --danger: #D9433B;
+            --warning: #C2790E;
+            --font: 'Prompt', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        html, body { height: 100%; }
+        body {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: var(--font);
+            font-weight: 300;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* ─── Header ─── */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 24px 0;
+            flex-shrink: 0;
+        }
+        .app-logo { font-weight: 700; font-size: 1rem; letter-spacing: 0.5px; }
+        .app-logo .hi {
+            background: linear-gradient(100deg, var(--accent), var(--blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .app-header-dot {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.68rem;
+            color: var(--ink-faint);
+            letter-spacing: 1px;
+        }
+        .app-header-dot::before {
+            content: '';
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 6px var(--accent);
+        }
+
+        /* ─── Hero ─── */
+        .hero {
+            position: relative;
+            padding: 20px 24px 18px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .confetti { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+        .confetti span { position: absolute; border-radius: 50%; opacity: 0.8; }
+        .hero-content { position: relative; z-index: 1; }
+        .hero-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            line-height: 1.28;
+        }
+        .hero-title .accent { color: var(--accent); font-weight: 700; }
+        .hero-caption {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: var(--ink-soft);
+            font-weight: 300;
+            line-height: 1.6;
+        }
+
+        /* ─── Loader ─── */
+        .loader-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 24px;
+            flex-grow: 1;
+        }
+        .spinner {
+            width: 30px; height: 30px;
+            border: 2.5px solid var(--rule);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-text {
+            margin-top: 14px;
+            font-size: 0.8rem;
+            color: var(--ink-faint);
+            font-weight: 300;
+        }
+
+        /* ─── Calendar (no card — thin top rule only) ─── */
+        .calendar-container {
+            flex-grow: 1;
+            padding: 0 16px 16px;
+            display: flex;
+            flex-direction: column;
+            animation: fadeUp 0.4s ease both;
+        }
+        .calendar-frame {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            border-top: 1px solid var(--rule);
+            border-radius: 0;
+            overflow: hidden;
+        }
+        .calendar-frame iframe {
+            flex-grow: 1;
+            width: 100%;
+            min-height: 500px;
+            border: none;
+            display: block;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ─── Status Cards (border only, no shadow) ─── */
+        .status-wrap {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 0 24px;
+            width: 100%;
+        }
+        .status-card {
+            border: 1px solid var(--rule);
+            border-radius: 20px;
+            padding: 30px 22px;
+            margin-top: 24px;
+            text-align: center;
+            animation: fadeUp 0.4s ease both;
+        }
+        .status-card.danger  { border-color: rgba(217,67,59,0.35); }
+        .status-card.warning { border-color: rgba(194,121,14,0.35); }
+
+        .status-icon { font-size: 1.8rem; margin-bottom: 12px; }
+        .status-title { font-size: 1.02rem; font-weight: 600; margin-bottom: 8px; }
+        .status-title.danger  { color: var(--danger); }
+        .status-title.warning { color: var(--warning); }
+
+        .status-desc {
+            font-size: 0.85rem;
+            color: var(--ink-soft);
+            font-weight: 300;
+            line-height: 1.7;
+        }
+        .status-desc strong { color: var(--ink); font-weight: 600; }
+
+        .error-text {
+            text-align: center;
+            color: var(--danger);
+            font-weight: 500;
+            padding: 40px 20px;
+            font-size: 0.9rem;
+        }
+
+        .hidden { display: none !important; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .calendar-container, .status-card { animation: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-header">
+        <div class="app-logo">TAXI<span class="hi">EV</span></div>
+        <div class="app-header-dot">CHIANG MAI</div>
+    </div>
+
+    <div class="hero">
+        <div class="confetti" aria-hidden="true">
+            <span style="width:6px;height:6px;top:2px;left:22px;background:var(--accent);"></span>
+            <span style="width:4px;height:4px;top:24px;left:60px;background:var(--orange);"></span>
+            <span style="width:8px;height:8px;top:8px;right:18px;background:var(--blue);opacity:0.55;"></span>
+            <span style="width:4px;height:4px;top:38px;right:56px;background:var(--purple);"></span>
+        </div>
+        <div class="hero-content">
+            <div class="hero-title">ตาราง<span class="accent">วันหยุด</span> / ลาพัก</div>
+            <div class="hero-caption">ตรวจสอบคิวหยุดของเพื่อนร่วมงานได้ที่นี่</div>
+        </div>
+    </div>
+
+    <!-- Loader -->
+    <div id="loader" class="loader-wrap">
+        <div class="spinner"></div>
+        <div class="loader-text">กำลังตรวจสอบสิทธิ์...</div>
+    </div>
+
+    <!-- Calendar -->
+    <div id="calendarContent" class="hidden" style="flex-grow:1; display:flex; flex-direction:column;">
+        <div class="calendar-container">
+            <div class="calendar-frame">
+                <iframe src="https://calendar.google.com/calendar/embed?src=b98afce7545711ef3d92851d14979ca45e378c7b563dcd9acc8cbddeca8ef3bb%40group.calendar.google.com&ctz=Asia%2FBangkok" scrolling="no"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const LIFF_ID = "2009451309-BayFaObk";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzuh0khDmnAU624NO5a6LSLFDhp0-k-9VROw-ETyqE2wcn9c3f2tv0lLDA7ONfu17SI/exec";
+        let userUid = "";
+
+        async function main() {
+            await liff.init({ liffId: LIFF_ID });
+            if (!liff.isLoggedIn()) { liff.login(); return; }
+            userUid = (await liff.getProfile()).userId;
+            checkUser(userUid);
+        }
+
+        async function checkUser(userId) {
+            try {
+                const res = await fetch(`${GAS_URL}?uid=${userId}`);
+                const data = await res.json();
+
+                if (data.status === "success") {
+                    document.getElementById('loader').classList.add('hidden');
+                    const cal = document.getElementById('calendarContent');
+                    cal.classList.remove('hidden');
+                    cal.style.display = 'flex';
+
+                } else if (data.status === "suspended") {
+                    document.getElementById('loader').innerHTML = `
+                        <div class="status-wrap">
+                            <div class="status-card danger">
+                                <div class="status-icon">🚫</div>
+                                <div class="status-title danger">บัญชีถูกระงับ</div>
+                                <p class="status-desc">ผู้ใช้ถูกระงับการใช้งาน<br>กรุณาติดต่อแอดมินหรือผู้ดูแลระบบครับ</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('loader').innerHTML = `
+                        <div class="status-wrap">
+                            <div class="status-card warning">
+                                <div class="status-icon">⚠️</div>
+                                <div class="status-title warning">ไม่มีสิทธิ์เข้าใช้งาน</div>
+                                <p class="status-desc">บัญชีของคุณยังไม่ได้รับการอนุมัติ<br><br>กรุณาไปที่เมนู <strong>"ส่งยอดรายวัน"</strong><br>เพื่อคัดลอกรหัส UID ส่งให้แอดมินครับ</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch(err) {
+                document.getElementById('loader').innerHTML = `<p class="error-text">เชื่อมต่อเซิร์ฟเวอร์ผิดพลาด</p>`;
+            }
+        }
+
+        window.onload = main;
+    </script>
+</body>
+</html>
