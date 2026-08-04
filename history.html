@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>แนบสลิปและประวัติการส่งยอด - TaxiEV</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #FAFCFB;
+            --surface: #FFFFFF;
+            --ink: #102520;
+            --ink-soft: #4E6B67;
+            --ink-faint: #8AA39F;
+            --accent: #1CA37D;
+            --blue: #3E6FE0;
+            --orange: #E07A1F;
+            --purple: #8862E0;
+            --danger: #D9433B;
+            --danger-tint: rgba(217,67,59,0.08);
+            --warning: #C2790E;
+            --warning-tint: rgba(194,121,14,0.08);
+            --rule: rgba(16,37,32,0.14);
+            --font: 'Prompt', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: var(--font);
+            font-weight: 300;
+            -webkit-font-smoothing: antialiased;
+            padding-bottom: 40px;
+        }
+
+        /* ─── Header ─── */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 24px 0;
+        }
+        .app-logo { font-weight: 700; font-size: 1rem; letter-spacing: 0.5px; }
+        .app-logo .hi {
+            background: linear-gradient(100deg, var(--accent), var(--blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .app-header-dot {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 0.68rem; color: var(--ink-faint); letter-spacing: 1px;
+        }
+        .app-header-dot::before {
+            content: ''; width: 6px; height: 6px; border-radius: 50%;
+            background: var(--accent); box-shadow: 0 0 6px var(--accent);
+        }
+
+        .hero {
+            position: relative;
+            padding: 18px 24px 20px;
+            overflow: hidden;
+        }
+        .confetti { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+        .confetti span { position: absolute; border-radius: 50%; opacity: 0.8; }
+        .hero-content { position: relative; z-index: 1; }
+        .hero-title { font-size: 1.5rem; font-weight: 600; }
+        .hero-title .accent { color: var(--accent); font-weight: 700; }
+        .hero-caption { margin-top: 6px; font-size: 0.8rem; color: var(--ink-soft); font-weight: 300; }
+
+        /* ─── Container ─── */
+        .container { max-width: 480px; margin: 0 auto; padding: 0 20px; }
+
+        /* ─── Loader ─── */
+        .loader-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; }
+        .spinner {
+            width: 30px; height: 30px;
+            border: 2.5px solid var(--rule);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        .spinner-lg { width: 44px; height: 44px; border-width: 3.5px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ─── History Cards (cardless — underline list) ─── */
+        .history-card {
+            padding: 18px 0;
+            border-bottom: 1px solid var(--rule);
+            animation: fadeUp 0.3s ease both;
+        }
+        .history-card:first-child { padding-top: 4px; }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .card-date { font-size: 0.95rem; font-weight: 600; color: var(--ink); line-height: 1.3; }
+        .badge-edit {
+            display: inline-flex;
+            margin-top: 5px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.66rem;
+            font-weight: 500;
+            border: 1px solid rgba(217,67,59,0.35);
+            color: var(--danger);
+        }
+        .card-actions { display: flex; gap: 6px; flex-shrink: 0; }
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 11px;
+            border-radius: 999px;
+            font-family: inherit;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: transparent;
+            transition: transform 0.15s, background 0.2s;
+            white-space: nowrap;
+        }
+        .btn-action:active { transform: scale(0.96); }
+        .btn-action.slip { border: 1.5px solid var(--blue); color: var(--blue); }
+        .btn-action.slip:active { background: rgba(62,111,224,0.08); }
+        .btn-action.edit { border: 1.5px solid var(--orange); color: var(--orange); }
+        .btn-action.edit:active { background: rgba(224,122,31,0.08); }
+
+        .card-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            margin-top: 14px;
+        }
+        .stat-item { text-align: center; padding: 4px 0; }
+        .stat-item:first-child { border-right: 1px solid var(--rule); }
+        .stat-label { font-size: 0.7rem; color: var(--ink-faint); margin-bottom: 2px; }
+        .stat-value { font-size: 1.05rem; font-weight: 700; color: var(--ink); }
+        .stat-value.brand { color: var(--accent); }
+
+        /* Alerts — left accent bar, no heavy fill */
+        .card-alert {
+            margin-top: 12px;
+            padding: 9px 12px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            line-height: 1.55;
+        }
+        .card-alert strong { font-weight: 600; }
+        .card-alert.pending {
+            border: 1px dashed var(--rule);
+            color: var(--ink-soft);
+        }
+        .card-alert.error {
+            border-left: 3px solid var(--danger);
+            background: var(--danger-tint);
+            color: var(--danger);
+        }
+        .card-alert.review {
+            border-left: 3px solid var(--warning);
+            background: var(--warning-tint);
+            color: var(--warning);
+        }
+
+        .empty-state { text-align: center; padding: 56px 20px; }
+        .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+        .empty-title { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+        .empty-desc { font-size: 0.85rem; color: var(--ink-faint); font-weight: 300; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ─── Overlay Pages (Edit / Slip) ─── */
+        .overlay-page {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            z-index: 1000;
+            padding: 0 0 40px;
+        }
+        .overlay-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px 4px;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        .overlay-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-cancel {
+            padding: 6px 15px;
+            border: 1.5px solid var(--danger);
+            border-radius: 999px;
+            background: transparent;
+            color: var(--danger);
+            font-family: inherit;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-cancel:active { background: var(--danger-tint); }
+
+        .overlay-body { max-width: 480px; margin: 0 auto; padding: 0 20px; }
+
+        .date-banner {
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin: 16px 0 6px;
+        }
+        .date-banner.edit { border-left: 3px solid var(--orange); background: rgba(224,122,31,0.06); color: var(--orange); }
+        .date-banner.slip { border-left: 3px solid var(--blue); background: rgba(62,111,224,0.06); color: var(--blue); }
+
+        /* ─── Form Sections (cardless, underline inputs — matches daily report page) ─── */
+        .section { padding: 22px 0; border-top: 1px solid var(--rule); }
+        .section-eyebrow { font-size: 0.68rem; letter-spacing: 2px; font-weight: 600; margin-bottom: 4px; }
+        .section.c-teal   .section-eyebrow { color: var(--accent); }
+        .section.c-blue   .section-eyebrow { color: var(--blue); }
+        .section.c-orange .section-eyebrow { color: var(--orange); }
+        .section.c-purple .section-eyebrow { color: var(--purple); }
+        .section-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 16px; }
+
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 16px; }
+        .input-grid .full-width { grid-column: 1 / -1; }
+        .input-label { display: block; font-size: 0.7rem; font-weight: 400; color: var(--ink-faint); margin-bottom: 6px; }
+        .input-field {
+            width: 100%;
+            padding: 6px 2px 9px;
+            border: none;
+            border-bottom: 1px solid var(--rule);
+            background: transparent;
+            font-family: var(--font);
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--ink);
+            outline: none;
+            -webkit-appearance: none;
+            transition: border-color 0.2s;
+        }
+        .input-field::placeholder { color: var(--ink-faint); font-weight: 300; }
+        .section.c-teal   .input-field:focus { border-bottom-color: var(--accent); }
+        .section.c-blue   .input-field:focus { border-bottom-color: var(--blue); }
+        .section.c-orange .input-field:focus { border-bottom-color: var(--orange); }
+        .section.c-purple .input-field:focus { border-bottom-color: var(--purple); }
+        select.input-field { cursor: pointer; }
+        input[type="file"].input-field { font-size: 0.85rem; padding-bottom: 10px; }
+
+        .helper-text { font-size: 0.72rem; color: var(--ink-faint); margin-top: 8px; line-height: 1.5; }
+
+        /* ─── Buttons ─── */
+        .btn-submit {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-top: 26px;
+            border: 1.5px solid var(--accent);
+            border-radius: 999px;
+            background: transparent;
+            color: var(--accent);
+            font-family: var(--font);
+            font-size: 0.98rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, transform 0.15s;
+        }
+        .btn-submit:active { background: var(--accent); color: #06201A; transform: scale(0.98); }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-submit.info { border-color: var(--blue); color: var(--blue); }
+        .btn-submit.info:active { background: var(--blue); color: #fff; }
+
+        /* ─── Modal ─── */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(16,37,32,0.45);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.2s ease;
+        }
+        .modal-backdrop.show { display: flex; }
+        .modal-box {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 30px 26px;
+            max-width: 300px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 16px 40px rgba(16,37,32,0.18);
+            animation: scaleIn 0.25s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+
+        .modal-icon { font-size: 2.6rem; margin-bottom: 12px; }
+        .modal-msg { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; line-height: 1.55; }
+        .modal-msg small { font-size: 0.78rem; font-weight: 400; color: var(--ink-faint); }
+        .modal-msg.success { color: var(--accent); }
+        .modal-msg.warning { color: var(--warning); }
+        .modal-msg.error   { color: var(--danger); }
+        .modal-msg.loading { color: var(--ink); }
+
+        .btn-modal-ok {
+            margin-top: 16px;
+            padding: 8px 28px;
+            border: 1.5px solid var(--rule);
+            border-radius: 999px;
+            background: transparent;
+            color: var(--ink-soft);
+            font-family: var(--font);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-modal-ok:active { background: var(--bg); }
+
+        /* ─── Status Cards ─── */
+        .status-card {
+            border: 1px solid var(--rule);
+            border-radius: 20px;
+            padding: 30px 22px;
+            margin-top: 24px;
+            text-align: center;
+            animation: fadeUp 0.4s ease both;
+        }
+        .status-card.danger  { border-color: rgba(217,67,59,0.35); }
+        .status-card.warning { border-color: rgba(194,121,14,0.35); }
+        .status-icon-lg { font-size: 3rem; margin-bottom: 10px; }
+        .status-title { font-size: 1.02rem; font-weight: 600; margin-bottom: 8px; }
+        .status-title.danger  { color: var(--danger); }
+        .status-title.warning { color: var(--warning); }
+        .status-desc { font-size: 0.85rem; color: var(--ink-soft); font-weight: 300; line-height: 1.7; }
+
+        .error-text { text-align: center; color: var(--danger); font-weight: 500; padding: 40px 20px; font-size: 0.9rem; }
+
+        .hidden { display: none !important; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .history-card, .status-card, .modal-box { animation: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ═══════ HISTORY LIST ═══════ -->
+    <div id="historyList">
+        <div class="app-header">
+            <div class="app-logo">TAXI<span class="hi">EV</span></div>
+            <div class="app-header-dot">CHIANG MAI</div>
+        </div>
+        <div class="hero">
+            <div class="confetti" aria-hidden="true">
+                <span style="width:6px;height:6px;top:2px;left:24px;background:var(--accent);"></span>
+                <span style="width:4px;height:4px;top:22px;left:62px;background:var(--orange);"></span>
+                <span style="width:8px;height:8px;top:6px;right:20px;background:var(--blue);opacity:0.5;"></span>
+                <span style="width:4px;height:4px;top:36px;right:56px;background:var(--purple);"></span>
+            </div>
+            <div class="hero-content">
+                <div class="hero-title"><span class="accent">แนบสลิป</span></div>
+                <div class="hero-caption">ประวัติการส่งยอดของคุณ</div>
+            </div>
+        </div>
+        <div class="container">
+            <div id="loader" class="loader-wrap">
+                <div class="spinner"></div>
+            </div>
+            <div id="cardsContainer"></div>
+        </div>
+    </div>
+
+    <!-- ═══════ EDIT OVERLAY ═══════ -->
+    <div id="editSection" class="overlay-page">
+        <div class="overlay-top">
+            <div class="overlay-title">✏️ แก้ไขยอด</div>
+            <button class="btn-cancel" onclick="closeForms()">ยกเลิก</button>
+        </div>
+        <div class="overlay-body">
+            <div class="date-banner edit">วันที่: <span id="editDateDisplay"></span></div>
+
+            <form id="editForm">
+                <input type="hidden" id="editRow">
+                <input type="hidden" id="editTimestamp">
+
+                <div class="section c-teal">
+                    <div class="section-eyebrow">01 — APPLICATION</div>
+                    <div class="section-title">รายได้จากแอปพลิเคชัน</div>
+                    <div class="input-grid">
+                        <div><label class="input-label" for="e_grab">Grab</label><input type="number" id="e_grab" class="input-field" placeholder="0" step="any"></div>
+                        <div><label class="input-label" for="e_bolt">Bolt</label><input type="number" id="e_bolt" class="input-field" placeholder="0" step="any"></div>
+                        <div><label class="input-label" for="e_maxim">Maxim</label><input type="number" id="e_maxim" class="input-field" placeholder="0" step="any"></div>
+                        <div><label class="input-label" for="e_indriver">InDriver</label><input type="number" id="e_indriver" class="input-field" placeholder="0" step="any"></div>
+                        <div class="full-width"><label class="input-label" for="e_lineman">LINE MAN</label><input type="number" id="e_lineman" class="input-field" placeholder="0" step="any"></div>
+                    </div>
+                </div>
+
+                <div class="section c-blue">
+                    <div class="section-eyebrow">02 — CHARTER</div>
+                    <div class="section-title">งานนอกระบบ / เหมา</div>
+                    <div class="input-grid">
+                        <div><label class="input-label" for="e_outside">งานนอก</label><input type="number" id="e_outside" class="input-field" placeholder="0" step="any"></div>
+                        <div><label class="input-label" for="e_mao">งานเหมา</label><input type="number" id="e_mao" class="input-field" placeholder="0" step="any"></div>
+                        <div class="full-width"><label class="input-label" for="e_mao_location">สถานที่เหมา (ถ้ามี)</label><input type="text" id="e_mao_location" class="input-field" placeholder="เช่น เชียงใหม่-ปาย"></div>
+                    </div>
+                </div>
+
+                <div class="section c-orange hidden" id="airportSection">
+                    <div class="section-eyebrow">03 — AIRPORT</div>
+                    <div class="section-title">งานสนามบิน</div>
+                    <div class="input-grid">
+                        <div class="full-width"><label class="input-label" for="e_airport">ยอดหักเข้าสนามบิน (ใส่สูตรได้)</label><input type="text" id="e_airport" class="input-field" placeholder="เช่น 150+150"></div>
+                    </div>
+                </div>
+
+                <button type="submit" id="btnSubmitEdit" class="btn-submit">บันทึกยอดใหม่</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══════ SLIP OVERLAY ═══════ -->
+    <div id="slipSection" class="overlay-page">
+        <div class="overlay-top">
+            <div class="overlay-title">📸 ส่งสลิปโอนเงิน</div>
+            <button class="btn-cancel" onclick="closeForms()">ยกเลิก</button>
+        </div>
+        <div class="overlay-body">
+            <div class="date-banner slip">ยอดของวันที่: <span id="slipDateDisplay"></span></div>
+
+            <form id="slipForm">
+                <input type="hidden" id="slipRow">
+                <input type="hidden" id="slipTimestamp">
+
+                <div class="section c-purple">
+                    <div class="section-eyebrow">01 — BANK</div>
+                    <div class="section-title">โอนเข้าบัญชีธนาคาร</div>
+                    <select id="slip_account" class="input-field">
+                        <option value="ACCOUNT_A">บัญชีหลัก (หจก. โอเค...)</option>
+                        <option value="ACCOUNT_B">บัญชีค่ายาง (นาย เด่นภูมิ )</option>
+                    </select>
+                </div>
+
+                <div class="section c-blue">
+                    <div class="section-eyebrow">02 — UPLOAD</div>
+                    <div class="section-title">อัปโหลดรูปภาพสลิป</div>
+                    <input type="file" class="input-field" id="slip_image" accept="image/*" required>
+                    <p class="helper-text">ระบบจะส่งรูปภาพนี้ให้แอดมินเพื่อยืนยันการโอนเงินของวันดังกล่าว</p>
+                </div>
+
+                <button type="submit" id="btnSubmitSlip" class="btn-submit info">ส่งสลิปยืนยัน</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══════ CUSTOM MODAL ═══════ -->
+    <div class="modal-backdrop" id="statusModal">
+        <div class="modal-box" id="modalBox"></div>
+    </div>
+
+    <script>
+        const LIFF_ID = "2009451309-RaBXjBUG";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzuh0khDmnAU624NO5a6LSLFDhp0-k-9VROw-ETyqE2wcn9c3f2tv0lLDA7ONfu17SI/exec";
+        let uid = "";
+        let currentHistoryData = [];
+
+        async function main() {
+            await liff.init({ liffId: LIFF_ID });
+            if (!liff.isLoggedIn()) { liff.login(); return; }
+            uid = (await liff.getProfile()).userId;
+            loadInitialData(uid);
+        }
+
+        /* ─── Modal (replaces Bootstrap Modal) ─── */
+        function showStatus(type, message) {
+            const box = document.getElementById('modalBox');
+            let icon = '', cls = '';
+
+            if (type === "success")  { icon = '✅'; cls = 'success'; }
+            else if (type === "warning") { icon = '⚠️'; cls = 'warning'; }
+            else if (type === "error")   { icon = '❌'; cls = 'error'; }
+            else if (type === "loading") { icon = ''; cls = 'loading'; }
+
+            let html = '';
+            if (type === "loading") {
+                html = `<div class="spinner spinner-lg" style="margin: 0 auto 16px;"></div>
+                        <div class="modal-msg loading">${message}</div>`;
+            } else {
+                html = `<div class="modal-icon">${icon}</div>
+                        <div class="modal-msg ${cls}">${message}</div>
+                        <button class="btn-modal-ok" onclick="hideModal()">ตกลง</button>`;
+            }
+            box.innerHTML = html;
+            document.getElementById('statusModal').classList.add('show');
+        }
+
+        function hideModal() {
+            document.getElementById('statusModal').classList.remove('show');
+        }
+
+        /* ─── Load Initial Data ─── */
+        async function loadInitialData(userId) {
+            try {
+                const payload = { status: "โหลดหน้าแรก", uid: userId };
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const data = await res.json();
+
+                if (data.status === "success") {
+                    if (data.history && data.history.length > 0) {
+                        currentHistoryData = data.history;
+                        renderHistory(currentHistoryData);
+                    } else {
+                        document.getElementById('cardsContainer').innerHTML = "<p style='text-align:center;color:var(--text-muted);padding:40px 0;'>ยังไม่มีประวัติการส่งยอดครับ</p>";
+                    }
+                    document.getElementById('loader').classList.add('hidden');
+                }
+                else if (data.status === "suspended") {
+                    document.getElementById('loader').classList.add('hidden');
+                    document.getElementById('historyList').innerHTML = `
+                        <div class="container" style="padding-top:40px;">
+                            <div class="status-card danger">
+                                <div class="status-icon-lg">🚫</div>
+                                <div class="status-title danger">บัญชีถูกระงับ</div>
+                                <p class="status-desc">กรุณาติดต่อแอดมิน</p>
+                            </div>
+                        </div>`;
+                }
+                else {
+                    document.getElementById('loader').classList.add('hidden');
+                    document.getElementById('historyList').innerHTML = `
+                        <div class="container" style="padding-top:40px;">
+                            <div class="status-card warning">
+                                <div class="status-icon-lg">⚠️</div>
+                                <div class="status-title warning">ไม่มีสิทธิ์เข้าใช้งาน</div>
+                                <p class="status-desc">ยังไม่ได้ลงทะเบียนในระบบ</p>
+                            </div>
+                        </div>`;
+                }
+            } catch(err) {
+                showStatus("error", "โหลดข้อมูลไม่สำเร็จ");
+            }
+        }
+
+        /* ─── Render History Cards ─── */
+        function renderHistory(historyArray) {
+            const container = document.getElementById('cardsContainer');
+            let visibleCount = 0;
+            let html = "";
+
+            historyArray.forEach((item, index) => {
+                const slipStatusStr = item.slipStatus || "";
+
+                if (slipStatusStr.includes("ตรวจสอบแล้ว ✅")) return;
+
+                visibleCount++;
+
+                const editBadge = item.editCount > 0
+                    ? `<div class="badge-edit">✏️ แก้ไขครั้งที่ ${item.editCount}</div>`
+                    : "";
+
+                const dateObj = new Date(item.date);
+                const dateStr = dateObj.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+                const totalAmount = item.totalRev ? Number(item.totalRev).toLocaleString() : '0';
+                const transferAmount = item.rentalFee ? Number(item.rentalFee).toLocaleString() : '0';
+
+                let alertHtml = "";
+                if (slipStatusStr.trim() === "") {
+                    alertHtml = `<div class="card-alert pending">⏳ <strong>ยังไม่ได้แนบสลิป</strong><br>รบกวนกดปุ่ม 📸 แนบสลิปด้านบนครับ</div>`;
+                } else if (slipStatusStr.includes("โอนขาด ❌")) {
+                    let extractMsg = slipStatusStr.split('(')[1] ? '(' + slipStatusStr.split('(')[1] : slipStatusStr;
+                    alertHtml = `<div class="card-alert error">⚠️ <strong>ยอดเงินไม่ครบ!</strong> รบกวนโอนเพิ่มอีก<br>${extractMsg}</div>`;
+                } else if (slipStatusStr.includes("ผิดบัญชี ❌")) {
+                    let extractMsg = slipStatusStr.split('(')[1] ? '(' + slipStatusStr.split('(')[1] : slipStatusStr;
+                    alertHtml = `<div class="card-alert error">⚠️ <strong>โอนผิดบัญชี!</strong><br>${extractMsg}</div>`;
+                } else if (slipStatusStr.includes("สลิปซ้ำ ❌")) {
+                    alertHtml = `<div class="card-alert error">⚠️ <strong>สลิปซ้ำ!</strong> (รูปนี้ถูกใช้งานไปแล้ว)</div>`;
+                } else if (slipStatusStr.includes("ตรวจสอบด้วยตา ⚠️")) {
+                    alertHtml = `<div class="card-alert review">⏳ <strong>สแกนไม่ติด</strong> รอแอดมินตรวจสอบครับ</div>`;
+                }
+
+                html += `
+                    <div class="history-card">
+                        <div class="card-top">
+                            <div>
+                                <div class="card-date">${dateStr}</div>
+                                ${editBadge}
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn-action slip" onclick="openSlipForm(${index}, '${dateStr}')">📸 แนบสลิป</button>
+                                <button class="btn-action edit" onclick="openEditForm(${index}, '${dateStr}')">แก้ไข</button>
+                            </div>
+                        </div>
+                        <div class="card-stats">
+                            <div class="stat-item">
+                                <div class="stat-label">ยอดรวมทั้งหมด</div>
+                                <div class="stat-value">${totalAmount} ฿</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">ยอดที่ต้องโอน</div>
+                                <div class="stat-value brand">${transferAmount} ฿</div>
+                            </div>
+                        </div>
+                        ${alertHtml}
+                    </div>`;
+            });
+
+            if (visibleCount === 0) {
+                html = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🎉</div>
+                        <div class="empty-title">เยี่ยมมาก!</div>
+                        <div class="empty-desc">คุณไม่มีค้างส่งสลิปย้อนหลังแล้วครับ</div>
+                    </div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        /* ─── Open / Close Forms ─── */
+        function closeForms() {
+            document.getElementById('editSection').style.display = 'none';
+            document.getElementById('slipSection').style.display = 'none';
+            document.getElementById('historyList').style.display = 'block';
+        }
+
+        function openEditForm(index, dateStr) {
+            const item = currentHistoryData[index];
+            document.getElementById('editRow').value = item.row;
+            document.getElementById('editTimestamp').value = item.timestamp;
+            document.getElementById('editDateDisplay').innerText = dateStr;
+            document.getElementById('e_grab').value = item.grab || "";
+            document.getElementById('e_bolt').value = item.bolt || "";
+            document.getElementById('e_maxim').value = item.maxim || "";
+            document.getElementById('e_indriver').value = item.indriver || "";
+            document.getElementById('e_lineman').value = item.lineman || "";
+            document.getElementById('e_outside').value = item.outside || "";
+            document.getElementById('e_mao').value = item.mao || "";
+            document.getElementById('e_mao_location').value = item.mao_location || "";
+
+            if (item.type === "แอป") {
+                document.getElementById('airportSection').classList.add('hidden');
+                document.getElementById('e_airport').value = "";
+            } else {
+                document.getElementById('airportSection').classList.remove('hidden');
+                document.getElementById('e_airport').value = item.airport_calc || "";
+            }
+
+            document.getElementById('historyList').style.display = 'none';
+            document.getElementById('slipSection').style.display = 'none';
+            document.getElementById('editSection').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function openSlipForm(index, dateStr) {
+            const item = currentHistoryData[index];
+            document.getElementById('slipRow').value = item.row;
+            document.getElementById('slipTimestamp').value = item.timestamp;
+            document.getElementById('slipDateDisplay').innerText = dateStr;
+            document.getElementById('slip_image').value = "";
+
+            document.getElementById('historyList').style.display = 'none';
+            document.getElementById('editSection').style.display = 'none';
+            document.getElementById('slipSection').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        /* ─── Helpers ─── */
+        function getBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        function fetchHistory() {
+            loadInitialData(uid);
+        }
+
+        /* ─── Slip Form Submit ─── */
+        document.getElementById('slipForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitSlip');
+            const fileInput = document.getElementById('slip_image');
+
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showStatus("warning", "กรุณาเลือกรูปภาพสลิปก่อนครับ");
+                return;
+            }
+
+            btn.disabled = true;
+            showStatus("loading", "กำลังอัปโหลดรูปภาพ...<br><small>อาจใช้เวลาสักครู่</small>");
+
+            try {
+                const file = fileInput.files[0];
+                const base64 = await getBase64(file);
+
+                const payload = {
+                    status: "อัปโหลดสลิป",
+                    uid: uid,
+                    row: document.getElementById('slipRow').value,
+                    original_timestamp: document.getElementById('slipTimestamp').value,
+                    account_type: document.getElementById('slip_account').value,
+                    slip_base64: base64,
+                    slip_name: file.name
+                };
+
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await res.json();
+
+                hideModal();
+                if (result.status === "success") {
+                    showStatus("success", "ส่งสลิปสำเร็จ!<br><small>แอดมินได้รับข้อมูลแล้วครับ</small>");
+                    closeForms();
+                    document.getElementById('loader').classList.remove('hidden');
+                    document.getElementById('cardsContainer').innerHTML = "";
+                    fetchHistory();
+                } else {
+                    showStatus("error", "เกิดข้อผิดพลาด:<br><small>" + result.message + "</small>");
+                }
+            } catch (err) {
+                hideModal();
+                showStatus("error", "อัปโหลดไม่สำเร็จ<br><small>ไฟล์อาจมีขนาดใหญ่เกินไป หรืออินเทอร์เน็ตขัดข้อง</small>");
+            }
+            btn.disabled = false;
+        };
+
+        /* ─── Edit Form Submit ─── */
+        document.getElementById('editForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitEdit');
+            const maoValue = Number(document.getElementById('e_mao').value) || 0;
+            const maoLoc = document.getElementById('e_mao_location').value.trim();
+
+            if (maoValue > 0 && maoLoc === "") {
+                showStatus("warning", "กรุณาระบุ 'สถานที่เหมา' ด้วยครับ");
+                return;
+            }
+
+            btn.disabled = true;
+            showStatus("loading", "กำลังบันทึกยอดแก้ไข...");
+
+            const payload = {
+                status: "แก้ไขยอด",
+                uid: uid,
+                row: document.getElementById('editRow').value,
+                original_timestamp: document.getElementById('editTimestamp').value,
+                grab: document.getElementById('e_grab').value,
+                bolt: document.getElementById('e_bolt').value,
+                maxim: document.getElementById('e_maxim').value,
+                indriver: document.getElementById('e_indriver').value,
+                lineman: document.getElementById('e_lineman').value,
+                outside: document.getElementById('e_outside').value,
+                mao: document.getElementById('e_mao').value,
+                mao_location: document.getElementById('e_mao_location').value,
+                airport_calc: document.getElementById('e_airport').value
+            };
+
+            try {
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await res.json();
+
+                hideModal();
+                if (result.status === "success") {
+                    showStatus("success", "อัปเดตยอดสำเร็จ!");
+                    closeForms();
+                    document.getElementById('loader').classList.remove('hidden');
+                    document.getElementById('cardsContainer').innerHTML = "";
+                    fetchHistory();
+                } else {
+                    showStatus("error", "เกิดข้อผิดพลาด:<br>" + result.message);
+                }
+            } catch (err) {
+                hideModal();
+                showStatus("error", "เชื่อมต่อขัดข้อง");
+            }
+            btn.disabled = false;
+        };
+
+        document.addEventListener("DOMContentLoaded", main);
+    </script>
+</body>
+</html>
