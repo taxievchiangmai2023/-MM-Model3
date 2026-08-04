@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>สรุปผลงาน - TaxiEV</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #FAFCFB;
+            --ink: #102520;
+            --ink-soft: #4E6B67;
+            --ink-faint: #8AA39F;
+            --accent: #1CA37D;
+            --blue: #3E6FE0;
+            --orange: #E07A1F;
+            --purple: #8862E0;
+            --danger: #D9433B;
+            --warning: #C2790E;
+            --rule: rgba(16,37,32,0.14);
+            --font: 'Prompt', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: var(--font);
+            font-weight: 300;
+            -webkit-font-smoothing: antialiased;
+            padding-bottom: 40px;
+            min-height: 100vh;
+        }
+
+        /* ─── Header ─── */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 24px 0;
+        }
+        .app-logo { font-weight: 700; font-size: 1rem; letter-spacing: 0.5px; }
+        .app-logo .hi {
+            background: linear-gradient(100deg, var(--accent), var(--blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .app-header-dot {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.68rem;
+            color: var(--ink-faint);
+            letter-spacing: 1px;
+        }
+        .app-header-dot::before {
+            content: '';
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 6px var(--accent);
+        }
+
+        /* ─── Hero: net income ─── */
+        .header {
+            position: relative;
+            padding: 18px 24px 26px;
+            text-align: center;
+            overflow: hidden;
+        }
+        .confetti { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+        .confetti span { position: absolute; border-radius: 50%; opacity: 0.8; }
+        .header-inner { position: relative; z-index: 1; }
+        .header-label {
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: var(--ink-faint);
+        }
+        .header-amount {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin: 6px 0 16px;
+            color: var(--accent);
+        }
+        .header-amount .currency {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--ink-faint);
+            margin-left: 4px;
+        }
+        .month-picker { display: inline-block; }
+        .month-picker input {
+            background: transparent;
+            border: none;
+            border-bottom: 1.5px solid var(--rule);
+            color: var(--ink);
+            padding: 6px 4px 8px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: center;
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .month-picker input:focus { border-bottom-color: var(--accent); }
+
+        /* ─── Container ─── */
+        .container { max-width: 480px; margin: 0 auto; padding: 0 24px; }
+
+        /* ─── Loader ─── */
+        .loader-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 70px 20px;
+        }
+        .spinner {
+            width: 30px; height: 30px;
+            border: 2.5px solid var(--rule);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-text {
+            margin-top: 14px;
+            font-size: 0.8rem;
+            color: var(--ink-faint);
+            font-weight: 300;
+        }
+
+        /* ─── Leave row (cardless) ─── */
+        .leave-row {
+            padding: 20px 0;
+            border-top: 1px solid var(--rule);
+            border-bottom: 1px solid var(--rule);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: fadeUp 0.4s ease both;
+        }
+        .leave-card-label { font-size: 0.85rem; font-weight: 400; color: var(--ink-soft); }
+        .leave-card-value { display: flex; align-items: baseline; gap: 4px; }
+        .leave-number { font-size: 1.5rem; font-weight: 700; color: var(--danger); line-height: 1; }
+        .leave-unit { font-size: 0.8rem; font-weight: 500; color: var(--danger); opacity: 0.85; }
+
+        /* ─── Weekly section (cardless) ─── */
+        .weekly-section {
+            padding: 24px 0;
+            animation: fadeUp 0.4s ease both;
+            animation-delay: 0.06s;
+        }
+        .section-eyebrow {
+            font-size: 0.68rem;
+            color: var(--accent);
+            letter-spacing: 2px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .weekly-title-text { font-size: 1rem; font-weight: 600; margin-bottom: 8px; }
+
+        .week-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 13px 0;
+            border-bottom: 1px solid var(--rule);
+        }
+        .week-row:last-child { border-bottom: none; }
+        .week-label { font-size: 0.83rem; color: var(--ink-soft); font-weight: 300; }
+        .week-value { font-size: 0.92rem; font-weight: 600; color: var(--accent); }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ─── Status Cards (border only) ─── */
+        .status-card {
+            border: 1px solid var(--rule);
+            border-radius: 20px;
+            padding: 30px 22px;
+            margin-top: 24px;
+            text-align: center;
+            animation: fadeUp 0.4s ease both;
+        }
+        .status-card.danger  { border-color: rgba(217,67,59,0.35); }
+        .status-card.warning { border-color: rgba(194,121,14,0.35); }
+        .status-icon { font-size: 1.8rem; margin-bottom: 12px; }
+        .status-title { font-size: 1.02rem; font-weight: 600; margin-bottom: 8px; }
+        .status-title.danger  { color: var(--danger); }
+        .status-title.warning { color: var(--warning); }
+        .status-desc { font-size: 0.85rem; color: var(--ink-soft); font-weight: 300; line-height: 1.7; }
+        .status-desc strong { color: var(--ink); font-weight: 600; }
+        .error-text {
+            text-align: center;
+            color: var(--danger);
+            font-weight: 500;
+            padding: 40px 20px;
+            font-size: 0.9rem;
+        }
+
+        .hidden { display: none !important; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .leave-row, .weekly-section, .status-card { animation: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-header">
+        <div class="app-logo">TAXI<span class="hi">EV</span></div>
+        <div class="app-header-dot">CHIANG MAI</div>
+    </div>
+
+    <!-- Header -->
+    <div class="header" id="dashboardHeader">
+        <div class="confetti" aria-hidden="true">
+            <span style="width:6px;height:6px;top:0px;left:26px;background:var(--accent);"></span>
+            <span style="width:4px;height:4px;top:20px;left:64px;background:var(--orange);"></span>
+            <span style="width:8px;height:8px;top:4px;right:22px;background:var(--blue);opacity:0.5;"></span>
+            <span style="width:4px;height:4px;top:34px;right:58px;background:var(--purple);"></span>
+        </div>
+        <div class="header-inner">
+            <div class="header-label">รายได้สุทธิประจำเดือน</div>
+            <div class="header-amount" id="totalNet">0 <span class="currency">฿</span></div>
+            <div class="month-picker">
+                <input type="month" id="monthSelector" onchange="fetchSummary()">
+            </div>
+        </div>
+    </div>
+
+    <!-- Loader -->
+    <div id="loader" class="loader-wrap">
+        <div class="spinner"></div>
+        <div class="loader-text">กำลังคำนวณยอด...</div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div id="app" class="hidden">
+        <div class="container">
+
+            <!-- Leave Days -->
+            <div class="leave-row">
+                <span class="leave-card-label">จำนวนวันที่หยุดพักผ่อน</span>
+                <div class="leave-card-value">
+                    <span class="leave-number" id="leaveDays">0</span>
+                    <span class="leave-unit">วัน</span>
+                </div>
+            </div>
+
+            <!-- Weekly Breakdown -->
+            <div class="weekly-section">
+                <div class="section-eyebrow">BREAKDOWN</div>
+                <div class="weekly-title-text">สรุปรายรับสุทธิ (รายสัปดาห์)</div>
+                <div class="week-row">
+                    <span class="week-label">สัปดาห์ที่ 1 (วันที่ 1–7)</span>
+                    <span class="week-value" id="w1">0 ฿</span>
+                </div>
+                <div class="week-row">
+                    <span class="week-label">สัปดาห์ที่ 2 (วันที่ 8–14)</span>
+                    <span class="week-value" id="w2">0 ฿</span>
+                </div>
+                <div class="week-row">
+                    <span class="week-label">สัปดาห์ที่ 3 (วันที่ 15–21)</span>
+                    <span class="week-value" id="w3">0 ฿</span>
+                </div>
+                <div class="week-row">
+                    <span class="week-label">สัปดาห์ที่ 4 (วันที่ 22–28)</span>
+                    <span class="week-value" id="w4">0 ฿</span>
+                </div>
+                <div class="week-row">
+                    <span class="week-label">ปลายเดือน (วันที่ 29 เป็นต้นไป)</span>
+                    <span class="week-value" id="w5">0 ฿</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const LIFF_ID = "2009451309-4BOlzBmc";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzuh0khDmnAU624NO5a6LSLFDhp0-k-9VROw-ETyqE2wcn9c3f2tv0lLDA7ONfu17SI/exec";
+        let userUid = "";
+
+        async function main() {
+            await liff.init({ liffId: LIFF_ID });
+            if (!liff.isLoggedIn()) { liff.login(); return; }
+            userUid = (await liff.getProfile()).userId;
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            let mm = now.getMonth() + 1;
+            if (mm < 10) mm = '0' + mm;
+            document.getElementById('monthSelector').value = `${yyyy}-${mm}`;
+            checkUser(userUid);
+        }
+
+        async function checkUser(userId) {
+            try {
+                const res = await fetch(`${GAS_URL}?uid=${userId}`);
+                const data = await res.json();
+
+                if (data.status === "success") {
+                    fetchSummary();
+                } else if (data.status === "suspended") {
+                    document.getElementById('dashboardHeader').classList.add('hidden');
+                    document.getElementById('app').classList.add('hidden');
+                    document.getElementById('loader').classList.remove('hidden');
+                    document.getElementById('loader').innerHTML = `
+                        <div class="container">
+                            <div class="status-card danger">
+                                <div class="status-icon">🚫</div>
+                                <div class="status-title danger">บัญชีถูกระงับ</div>
+                                <p class="status-desc">ผู้ใช้ถูกระงับการใช้งาน<br>กรุณาติดต่อแอดมินหรือผู้ดูแลระบบครับ</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('dashboardHeader').classList.add('hidden');
+                    document.getElementById('app').classList.add('hidden');
+                    document.getElementById('loader').classList.remove('hidden');
+                    document.getElementById('loader').innerHTML = `
+                        <div class="container">
+                            <div class="status-card warning">
+                                <div class="status-icon">⚠️</div>
+                                <div class="status-title warning">ไม่มีสิทธิ์เข้าใช้งาน</div>
+                                <p class="status-desc">บัญชีของคุณยังไม่ได้รับการอนุมัติ<br><br>กรุณาไปที่เมนู <strong>"ส่งยอดรายวัน"</strong><br>เพื่อคัดลอกรหัส UID ส่งให้แอดมินครับ</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch(err) {
+                document.getElementById('loader').innerHTML = `<p class="error-text">เชื่อมต่อเซิร์ฟเวอร์ผิดพลาด</p>`;
+            }
+        }
+
+        async function fetchSummary() {
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('app').classList.add('hidden');
+            try {
+                const res = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        status: "ดูสรุป",
+                        uid: userUid,
+                        month_val: document.getElementById('monthSelector').value
+                    })
+                });
+                const data = await res.json();
+                if (data.status === "success") {
+                    document.getElementById('totalNet').innerHTML = data.totalNet.toLocaleString() + ' <span class="currency">฿</span>';
+                    document.getElementById('leaveDays').innerText = data.leaveDays;
+                    document.getElementById('w1').innerText = data.weeks[0].toLocaleString() + " ฿";
+                    document.getElementById('w2').innerText = data.weeks[1].toLocaleString() + " ฿";
+                    document.getElementById('w3').innerText = data.weeks[2].toLocaleString() + " ฿";
+                    document.getElementById('w4').innerText = data.weeks[3].toLocaleString() + " ฿";
+                    document.getElementById('w5').innerText = data.weeks[4].toLocaleString() + " ฿";
+                    document.getElementById('loader').classList.add('hidden');
+                    document.getElementById('app').classList.remove('hidden');
+                }
+            } catch (err) {
+                document.getElementById('loader').innerHTML = `<p class="error-text">โหลดข้อมูลผิดพลาด</p>`;
+            }
+        }
+
+        window.onload = main;
+    </script>
+</body>
+</html>
