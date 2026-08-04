@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>แจ้งหยุดงาน - TaxiEV</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #FAFCFB;
+            --ink: #102520;
+            --ink-soft: #4E6B67;
+            --ink-faint: #8AA39F;
+            --accent: #1CA37D;
+            --blue: #3E6FE0;
+            --orange: #E07A1F;
+            --purple: #8862E0;
+            --danger: #D9433B;
+            --warning: #C2790E;
+            --rule: rgba(16,37,32,0.14);
+            --font: 'Prompt', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: var(--font);
+            font-weight: 300;
+            -webkit-font-smoothing: antialiased;
+            padding-bottom: 48px;
+        }
+
+        /* ─── Header ─── */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 24px 0;
+        }
+        .app-logo { font-weight: 700; font-size: 1rem; letter-spacing: 0.5px; }
+        .app-logo .hi {
+            background: linear-gradient(100deg, var(--accent), var(--blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .app-header-dot {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 0.68rem; color: var(--ink-faint); letter-spacing: 1px;
+        }
+        .app-header-dot::before {
+            content: ''; width: 6px; height: 6px; border-radius: 50%;
+            background: var(--accent); box-shadow: 0 0 6px var(--accent);
+        }
+
+        /* ─── Container ─── */
+        .container { max-width: 480px; margin: 0 auto; padding: 0 24px; }
+
+        /* ─── Loader ─── */
+        .loader-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 70px 20px; }
+        .spinner {
+            width: 30px; height: 30px;
+            border: 2.5px solid var(--rule);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ─── Hero (personalized greeting) ─── */
+        .hero { position: relative; padding: 18px 24px 20px; overflow: hidden; }
+        .confetti { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+        .confetti span { position: absolute; border-radius: 50%; opacity: 0.8; }
+        .hero-content { position: relative; z-index: 1; }
+        .hero-title { font-size: 1.5rem; font-weight: 600; line-height: 1.28; }
+        .hero-title .accent { color: var(--accent); font-weight: 700; }
+        .hero-caption { margin-top: 10px; font-size: 0.8rem; color: var(--ink-soft); font-weight: 300; }
+        .hero-caption .k { color: var(--accent); font-weight: 500; }
+
+        /* ─── Form Sections (cardless) ─── */
+        .section { padding: 24px 0; border-top: 1px solid var(--rule); animation: fadeUp 0.4s ease both; }
+        .section:first-of-type { border-top: 1px solid var(--rule); }
+        .section-label {
+            font-size: 0.68rem;
+            letter-spacing: 2px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .section.c-danger .section-label { color: var(--accent); }
+        .section.c-orange .section-label { color: var(--orange); }
+        .section.c-blue   .section-label { color: var(--blue); }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ─── Radio Toggle (outline pill segmented control) ─── */
+        .toggle-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .toggle-option { position: relative; }
+        .toggle-option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+        .toggle-label {
+            display: block;
+            padding: 11px 14px;
+            border-radius: 999px;
+            border: 1.5px solid var(--rule);
+            background: transparent;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--ink-soft);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .toggle-option input[type="radio"]:checked + .toggle-label {
+            border-color: var(--accent);
+            background: var(--accent);
+            color: #fff;
+            font-weight: 600;
+        }
+        .toggle-option input[type="radio"]:focus-visible + .toggle-label {
+            box-shadow: 0 0 0 3px rgba(28,163,125,0.2);
+        }
+
+        /* ─── Inputs (underline) ─── */
+        .input-label {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 400;
+            color: var(--ink-faint);
+            margin-bottom: 6px;
+        }
+        .input-field {
+            width: 100%;
+            padding: 6px 2px 9px;
+            border: none;
+            border-bottom: 1px solid var(--rule);
+            background: transparent;
+            font-family: var(--font);
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--ink);
+            outline: none;
+            -webkit-appearance: none;
+            transition: border-color 0.2s;
+        }
+        .input-field::placeholder { color: var(--ink-faint); font-weight: 300; }
+        .section.c-orange .input-field:focus { border-bottom-color: var(--orange); }
+        .section.c-blue   .input-field:focus { border-bottom-color: var(--blue); }
+        .input-hint { font-size: 0.72rem; color: var(--ink-faint); font-weight: 300; }
+
+        .date-row { display: grid; grid-template-columns: 1fr; gap: 20px; transition: grid-template-columns 0.3s; }
+        .date-row.multi { grid-template-columns: 1fr 1fr; }
+
+        /* ─── Submit Button ─── */
+        .btn-submit {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            margin-top: 26px;
+            border: 1.5px solid var(--accent);
+            border-radius: 999px;
+            background: transparent;
+            color: var(--accent);
+            font-family: var(--font);
+            font-size: 0.98rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, transform 0.15s;
+            animation: fadeUp 0.4s ease both;
+            animation-delay: 0.15s;
+        }
+        .btn-submit:active { background: var(--accent); color: #fff; transform: scale(0.98); }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* ─── Status Cards ─── */
+        .status-card {
+            border: 1px solid var(--rule);
+            border-radius: 20px;
+            padding: 30px 22px;
+            margin-top: 24px;
+            text-align: center;
+            animation: fadeUp 0.4s ease both;
+        }
+        .status-card.danger  { border-color: rgba(217,67,59,0.35); }
+        .status-card.warning { border-color: rgba(194,121,14,0.35); }
+        .status-icon { font-size: 1.8rem; margin-bottom: 12px; }
+        .status-title { font-size: 1.02rem; font-weight: 600; margin-bottom: 8px; }
+        .status-title.danger  { color: var(--danger); }
+        .status-title.warning { color: var(--warning); }
+        .status-desc { font-size: 0.85rem; color: var(--ink-soft); font-weight: 300; line-height: 1.7; }
+        .status-desc strong { color: var(--ink); font-weight: 600; }
+        .error-text { text-align: center; color: var(--danger); font-weight: 500; padding: 40px 20px; font-size: 0.9rem; }
+
+        .hidden { display: none !important; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .section, .btn-submit, .status-card { animation: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-header">
+        <div class="app-logo">TAXI<span class="hi">EV</span></div>
+        <div class="app-header-dot">CHIANG MAI</div>
+    </div>
+
+    <div class="container">
+
+        <!-- Loader -->
+        <div id="loader" class="loader-wrap">
+            <div class="spinner"></div>
+        </div>
+
+        <!-- Leave Form -->
+        <div id="leaveForm" class="hidden">
+
+            <div class="hero">
+                <div class="confetti" aria-hidden="true">
+                    <span style="width:6px;height:6px;top:2px;left:22px;background:var(--accent);"></span>
+                    <span style="width:4px;height:4px;top:26px;left:56px;background:var(--orange);"></span>
+                    <span style="width:8px;height:8px;top:6px;right:18px;background:var(--blue);opacity:0.5;"></span>
+                    <span style="width:4px;height:4px;top:38px;right:52px;background:var(--purple);"></span>
+                </div>
+                <div class="hero-content">
+                    <div class="hero-title">แจ้ง<span class="accent">หยุดงาน</span> / ลาพัก</div>
+                    <div class="hero-caption">
+                        คุณ <span class="k" id="driverName">...</span><br>
+                        ทะเบียน <span class="k" id="driverPlate">...</span> · บันทึกลงปฏิทินอัตโนมัติ
+                    </div>
+                </div>
+                <input type="hidden" id="uid">
+                <input type="hidden" id="name">
+                <input type="hidden" id="plate">
+                <input type="hidden" id="type">
+            </div>
+
+            <form id="form">
+
+                <!-- Leave Type -->
+                <div class="section c-danger">
+                    <div class="section-label">รูปแบบการหยุด</div>
+                    <div class="toggle-group">
+                        <div class="toggle-option">
+                            <input type="radio" name="leaveType" id="leaveOne" value="1" checked onchange="toggleLeaveType()">
+                            <label class="toggle-label" for="leaveOne">หยุด 1 วัน</label>
+                        </div>
+                        <div class="toggle-option">
+                            <input type="radio" name="leaveType" id="leaveMultiple" value="M" onchange="toggleLeaveType()">
+                            <label class="toggle-label" for="leaveMultiple">หยุดหลายวัน</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dates -->
+                <div class="section c-orange">
+                    <div class="section-label">ช่วงวันที่</div>
+                    <div class="date-row" id="dateRow">
+                        <div>
+                            <label class="input-label" id="startDateLabel" for="start_date">วันที่หยุด</label>
+                            <input type="date" id="start_date" class="input-field" required>
+                        </div>
+                        <div id="endDateGroup" class="hidden">
+                            <label class="input-label" for="end_date">ถึงวันที่</label>
+                            <input type="date" id="end_date" class="input-field">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reason -->
+                <div class="section c-blue">
+                    <label class="input-label" for="leave_reason">เหตุผลการหยุด <span class="input-hint">(ไม่ระบุได้)</span></label>
+                    <input type="text" id="leave_reason" class="input-field" placeholder="เช่น ธุระส่วนตัว, รถซ่อม">
+                </div>
+
+                <button type="submit" id="btnSubmit" class="btn-submit">บันทึกวันหยุด</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const LIFF_ID = "2009451309-801yZvQM";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzuh0khDmnAU624NO5a6LSLFDhp0-k-9VROw-ETyqE2wcn9c3f2tv0lLDA7ONfu17SI/exec";
+
+        async function main() {
+            await liff.init({ liffId: LIFF_ID });
+            if (!liff.isLoggedIn()) { liff.login(); return; }
+            const profile = await liff.getProfile();
+            document.getElementById('uid').value = profile.userId;
+
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            const today = `${yyyy}-${mm}-${dd}`;
+            document.getElementById('start_date').value = today;
+            document.getElementById('end_date').value = today;
+
+            checkUser(profile.userId);
+        }
+
+        function toggleLeaveType() {
+            const isMultiple = document.getElementById('leaveMultiple').checked;
+            const endGroup = document.getElementById('endDateGroup');
+            const dateRow = document.getElementById('dateRow');
+
+            if (isMultiple) {
+                endGroup.classList.remove('hidden');
+                dateRow.classList.add('multi');
+                document.getElementById('startDateLabel').innerText = 'เริ่มหยุดวันที่';
+                document.getElementById('end_date').setAttribute('required', 'true');
+            } else {
+                endGroup.classList.add('hidden');
+                dateRow.classList.remove('multi');
+                document.getElementById('startDateLabel').innerText = 'วันที่หยุด';
+                document.getElementById('end_date').removeAttribute('required');
+            }
+        }
+
+        async function checkUser(userId) {
+            try {
+                const res = await fetch(`${GAS_URL}?uid=${userId}`);
+                const data = await res.json();
+
+                if (data.status === "success") {
+                    document.getElementById('driverName').innerText = data.name;
+                    if (document.getElementById('driverPlate')) document.getElementById('driverPlate').innerText = data.plate;
+                    if (document.getElementById('name')) document.getElementById('name').value = data.name;
+                    if (document.getElementById('plate')) document.getElementById('plate').value = data.plate;
+                    if (document.getElementById('type')) document.getElementById('type').value = data.type;
+
+                    document.getElementById('loader').classList.add('hidden');
+                    document.getElementById('leaveForm').classList.remove('hidden');
+
+                } else if (data.status === "suspended") {
+                    document.getElementById('leaveForm').classList.add('hidden');
+                    document.getElementById('loader').innerHTML = `
+                        <div class="status-card danger">
+                            <div class="status-icon">🚫</div>
+                            <div class="status-title danger">บัญชีถูกระงับ</div>
+                            <p class="status-desc">ผู้ใช้ถูกระงับการใช้งาน<br>กรุณาติดต่อแอดมินหรือผู้ดูแลระบบครับ</p>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('leaveForm').classList.add('hidden');
+                    document.getElementById('loader').innerHTML = `
+                        <div class="status-card warning">
+                            <div class="status-icon">⚠️</div>
+                            <div class="status-title warning">ไม่มีสิทธิ์เข้าใช้งาน</div>
+                            <p class="status-desc">บัญชีของคุณยังไม่ได้รับการอนุมัติ<br><br>กรุณาไปที่เมนู <strong>"ส่งยอดรายวัน"</strong><br>เพื่อคัดลอกรหัส UID ส่งให้แอดมินครับ</p>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                document.getElementById('loader').innerHTML = `<p class="error-text">เชื่อมต่อเซิร์ฟเวอร์ผิดพลาด</p>`;
+            }
+        }
+
+        document.getElementById('form').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmit');
+            btn.disabled = true;
+            btn.innerText = "กำลังบันทึก...";
+
+            const isMultiple = document.getElementById('leaveMultiple').checked;
+            const startDate = document.getElementById('start_date').value;
+            const endDate = isMultiple ? document.getElementById('end_date').value : startDate;
+
+            let reasonInput = document.getElementById('leave_reason').value.trim();
+            if (reasonInput === "") { reasonInput = "ไม่ได้ระบุเหตุผล"; }
+
+            const payload = {
+                status: "หยุดงาน",
+                uid: document.getElementById('uid').value,
+                name: document.getElementById('name').value,
+                plate: document.getElementById('plate').value,
+                type: document.getElementById('type').value,
+                start_date: startDate,
+                end_date: endDate,
+                leave_reason: reasonInput
+            };
+
+            try {
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await res.json();
+                if (result.status === "success") {
+                    alert("บันทึกวันหยุดสำเร็จ");
+                    liff.closeWindow();
+                }
+            } catch (err) {
+                alert("ขัดข้อง ลองใหม่ครับ");
+            }
+            btn.disabled = false;
+            btn.innerText = "บันทึกวันหยุด";
+        };
+
+        main();
+    </script>
+</body>
+</html>
